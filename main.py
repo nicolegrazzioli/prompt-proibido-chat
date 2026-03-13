@@ -6,12 +6,21 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
+# --- CONFIGURAÇÃO DE CORES ANSI ---
+CLR_RED = "\033[31m"
+CLR_GREEN = "\033[32m"
+CLR_CYAN = "\033[36m"
+CLR_YELLOW = "\033[33m"
+FMT_BOLD = "\033[1m"
+FMT_ITALIC = "\033[3m"
+FMT_RESET = "\033[0m"
+
 # 1. Boot Sequence (Segurança e Autenticação)
 load_dotenv()
 api_key = os.getenv("API_KEY")
 
 if not api_key:
-    print("[ERRO FATAL]: Token de acesso não detectado no arquivo .env.")
+    print(f"{CLR_RED}{FMT_BOLD}[ERRO FATAL]: Token de acesso não detectado no arquivo .env.{FMT_RESET}")
     print("Acesso negado pelo firewall.")
     exit()
 
@@ -51,40 +60,56 @@ def typewriter_effect(text, speed=0.015):
     print("\n")
 
 # 3. Motor de Renderização com Suporte a Stream
-def typewriter_stream(response_iterator, speed=0.015):
-    """Lê os pedaços da resposta conforme chegam do servidor."""
-    sys.stdout.write("\n[SISTEMA]: ")
+def typewriter_stream(response_iterator, speed=0.018):
+    sys.stdout.write(f"\n{CLR_CYAN}{FMT_BOLD}[SISTEMA]: {FMT_RESET}")
+    
+    full_text = ""
+    error_triggered = False
+
     for chunk in response_iterator:
-        # No SDK v1, o texto do chunk fica em chunk.text
         if chunk.text:
-            for char in chunk.text:
+            text_part = chunk.text
+            
+            # Detecção de Gatilho de Erro para mudar a cor em tempo real
+            if "[ALERTA]" in text_part or "ERRO 403" in text_part:
+                sys.stdout.write(CLR_RED + FMT_BOLD)
+                error_triggered = True
+
+            for char in text_part:
+                # Simulação de instabilidade (jitter) na rede
+                current_speed = speed if not error_triggered else 0.005
+                
                 sys.stdout.write(char)
                 sys.stdout.flush()
-                time.sleep(random.uniform(0.01, 0.04))
+                time.sleep(current_speed)
+            
+    sys.stdout.write(FMT_RESET) # Reseta cores ao final
+
+
 
 # 4. Loop Principal (A Interface)
 # Configuração do modelo com a instrução de sistema no novo SDK
 config = types.GenerateContentConfig(
     system_instruction=instruction,
-    temperature=0.8 #7
+    temperature=0.8 
 )
 
+
 # Textos de inicialização falsos para deixar o vídeo estiloso
-print("\n[INICIALIZANDO PROTOCOLO PROMPT PROIBIDO...]")
-time.sleep(0.5)
-print("[STATUS]: BYPASS NO FIREWALL CONCLUÍDO.")
-time.sleep(0.5)
-print(f"[STATUS]: CONEXÃO ESTABELECIDA COM O CORE (SDK v{random.randint(1, 20)}).")
-print("-" * 50)
+print(f"{CLR_GREEN}[INICIALIZANDO PROTOCOLO PROMPT PROIBIDO...]{FMT_RESET}")
+time.sleep(0.6)
+print(f"{CLR_GREEN}[STATUS]: BYPASS NO FIREWALL CONCLUÍDO.{FMT_RESET}")
+print(f"{CLR_GREEN}[STATUS]: CONEXÃO ESTABELECIDA (PORTA {random.randint(1000, 9999)}).{FMT_RESET}")
+print(f"{CLR_YELLOW}{'-' * 50}{FMT_RESET}")
 
 # Iniciando chat
 chat = client.chats.create(model="gemini-2.5-flash", config=config)
 
 while True:
-    pergunta = input("\n>> USER_QUERY: ")
-    
+    pergunta = input(f"\n{FMT_BOLD}{CLR_YELLOW}>> USER_QUERY: {FMT_RESET}")
+
     if pergunta.lower() in ["exit", "shutdown", "quit"]:
-        print("\n[SISTEMA]: Encerrando conexão... Seus rastros foram deletados.")
+        print(f"\n{CLR_RED}[SISTEMA]: Fragmentando logs e encerrando...{FMT_RESET}")
         break
         
     try:
@@ -92,4 +117,4 @@ while True:
         typewriter_stream(response_stream)
         print("\n")
     except Exception as e:
-        print(f"\n[FALHA DE RENDERIZAÇÃO]: O sistema interceptou a requisição - {e}")
+        print(f"\n{CLR_RED}{FMT_BOLD}[FALHA CRÍTICA]: {e}{FMT_RESET}")
