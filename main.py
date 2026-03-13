@@ -1,4 +1,4 @@
-from random import random
+import random
 import os
 import sys
 import time
@@ -62,7 +62,7 @@ print("\n[INICIALIZANDO PROTOCOLO PROMPT PROIBIDO...]")
 time.sleep(1)
 print("[STATUS]: BYPASS NO FIREWALL CONCLUÍDO.")
 time.sleep(0.5)
-print("[STATUS]: CONEXÃO ESTABELECIDA COM O CORE (SDK v", random.randint(1, 20), ").")
+print(f"[STATUS]: CONEXÃO ESTABELECIDA (PORTA {random.randint(1000, 9999)}).")
 print("-" * 50)
 
 # Iniciando chat
