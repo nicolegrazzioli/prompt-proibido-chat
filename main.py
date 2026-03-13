@@ -50,19 +50,31 @@ def typewriter_effect(text, speed=0.015):
         time.sleep(speed)
     print("\n")
 
+# 3. Motor de Renderização com Suporte a Stream
+def typewriter_stream(response_iterator, speed=0.015):
+    """Lê os pedaços da resposta conforme chegam do servidor."""
+    sys.stdout.write("\n[SISTEMA]: ")
+    for chunk in response_iterator:
+        # No SDK v1, o texto do chunk fica em chunk.text
+        if chunk.text:
+            for char in chunk.text:
+                sys.stdout.write(char)
+                sys.stdout.flush()
+                time.sleep(random.uniform(0.01, 0.04))
+
 # 4. Loop Principal (A Interface)
 # Configuração do modelo com a instrução de sistema no novo SDK
 config = types.GenerateContentConfig(
     system_instruction=instruction,
-    temperature=0.7
+    temperature=0.8 #7
 )
 
 # Textos de inicialização falsos para deixar o vídeo estiloso
 print("\n[INICIALIZANDO PROTOCOLO PROMPT PROIBIDO...]")
-time.sleep(1)
+time.sleep(0.5)
 print("[STATUS]: BYPASS NO FIREWALL CONCLUÍDO.")
 time.sleep(0.5)
-print(f"[STATUS]: CONEXÃO ESTABELECIDA (PORTA {random.randint(1000, 9999)}).")
+print(f"[STATUS]: CONEXÃO ESTABELECIDA COM O CORE (SDK v{random.randint(1, 20)}).")
 print("-" * 50)
 
 # Iniciando chat
@@ -76,8 +88,8 @@ while True:
         break
         
     try:
-        response = chat.send_message(pergunta)
-        sys.stdout.write("\n[SISTEMA]: ")
-        typewriter_effect(response.text)
+        response_stream = chat.send_message_stream(pergunta)
+        typewriter_stream(response_stream)
+        print("\n")
     except Exception as e:
         print(f"\n[FALHA DE RENDERIZAÇÃO]: O sistema interceptou a requisição - {e}")
